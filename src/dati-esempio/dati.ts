@@ -1,5 +1,7 @@
 // ============================================================
 //  DATI DI ESEMPIO — NON REALI
+//  NOTA: dalla Fase 2 questo file NON è più usato dal sito (i dati stanno in Supabase).
+//  Resta solo come riferimento; si può eliminare.
 //  Corsi, orari, indirizzi, eventi e numeri qui sotto sono inventati
 //  per mostrare come funziona il sito. Dalla Fase 2 verranno sostituiti
 //  dai dati veri inseriti dalle maestre nel database.
@@ -15,6 +17,7 @@ export const scuola: Scuola = {
   whatsapp: "390000000000", // ESEMPIO: numero da sostituire
   instagram: "progetto_danza_bergamo",
   email: "info@esempio.it", // ESEMPIO
+  dati_di_esempio: true,
 };
 
 export const sedi: Sede[] = [

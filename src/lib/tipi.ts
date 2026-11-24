@@ -6,8 +6,8 @@ export type Sede = {
   id: string;
   nome: string;
   indirizzo: string;
-  lat: number;
-  lon: number;
+  lat: number | null;
+  lon: number | null;
 };
 
 export type Maestra = {
@@ -26,6 +26,7 @@ export type Fascia = {
 };
 
 export type Lezione = {
+  id?: string;
   giorno: number; // 1 = lunedì ... 6 = sabato
   inizio: string; // "16:30"
   fine: string;
@@ -44,6 +45,7 @@ export type Corso = {
   foto: string | null;
   descrizione: string;
   da_confermare?: boolean;
+  pubblicato?: boolean;
   lezioni: Lezione[];
 };
 
@@ -63,4 +65,17 @@ export type Scuola = {
   whatsapp: string; // numero con prefisso, senza +
   instagram: string;
   email: string;
+  dati_di_esempio: boolean;
+};
+
+export type RichiestaProva = {
+  id: string;
+  nome_genitore: string;
+  telefono: string;
+  nome_allievo: string;
+  eta: number;
+  corso_id: string | null;
+  stato: "nuova" | "contattata" | "chiusa";
+  note_maestre: string;
+  creata_il: string;
 };

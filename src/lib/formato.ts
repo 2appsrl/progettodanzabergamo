@@ -1,4 +1,4 @@
-import type { Corso, Lezione } from "./tipi";
+import type { Corso, Fascia, Lezione } from "./tipi";
 
 export const GIORNI = ["", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
 export const GIORNI_BREVI = ["", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
@@ -28,4 +28,21 @@ export function dataEstesa(iso: string) {
 
 export function linkWhatsApp(numero: string, testo: string) {
   return `https://wa.me/${numero}?text=${encodeURIComponent(testo)}`;
+}
+
+// Un corso è adatto a una fascia se le due età si sovrappongono.
+export function corsoAdattoAllaFascia(corso: Pick<Corso, "eta_min" | "eta_max">, fascia: Fascia) {
+  const corsoMax = corso.eta_max ?? 99;
+  const fasciaMax = fascia.eta_max ?? 99;
+  return corso.eta_min <= fasciaMax && corsoMax >= fascia.eta_min;
+}
+
+// "333 1234567" -> "393331234567" (formato richiesto dai link wa.me)
+export function numeroWhatsApp(telefono: string) {
+  const cifre = telefono.replace(/\D/g, "").replace(/^00/, "");
+  return cifre.startsWith("39") && cifre.length > 10 ? cifre : "39" + cifre;
+}
+
+export function dataOra(iso: string) {
+  return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }).format(new Date(iso));
 }

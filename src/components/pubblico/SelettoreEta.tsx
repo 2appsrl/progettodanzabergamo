@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { corsoAdattoAllaFascia } from "@/lib/dati";
+import { corsoAdattoAllaFascia } from "@/lib/formato";
 import type { Corso, Fascia, Sede } from "@/lib/tipi";
 import { CardCorso } from "./CardCorso";
 import { Settimana } from "./Settimana";

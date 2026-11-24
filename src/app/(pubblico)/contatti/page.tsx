@@ -24,6 +24,7 @@ export default async function Contatti() {
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           {sedi.map((s, i) => {
+            if (s.lat === null || s.lon === null) return null;
             const d = 0.012;
             const mappa = `https://www.openstreetmap.org/export/embed.html?bbox=${s.lon - d},${s.lat - d * 0.6},${s.lon + d},${s.lat + d * 0.6}&layer=mapnik`;
             return (

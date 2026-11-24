@@ -13,8 +13,8 @@ export default async function PrenotaProva({ searchParams }: { searchParams: Pro
       <TestataPagina titolo={<>Prenota una <span className="text-giallo">prova</span></>}>Compila il modulo: ti ricontattiamo noi.</TestataPagina>
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <ModuloProva
-          corsi={corsi.map((c) => ({ slug: c.slug, nome: c.nome, eta: etichettaEta(c) }))}
-          corsoIniziale={corsi.some((c) => c.slug === corso) ? corso : undefined}
+          corsi={corsi.map((c) => ({ id: c.id, nome: c.nome, eta: etichettaEta(c) }))}
+          corsoIniziale={corsi.find((c) => c.slug === corso)?.id}
         />
       </div>
     </>
