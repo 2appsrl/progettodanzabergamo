@@ -145,3 +145,141 @@ export async function salvaProdotto(form: FormData) {
   aggiornaSito();
   redirect(error ? "/maestre/merch?errore=Salvataggio%20non%20riuscito." : "/maestre/merch?salvato=1");
 }
+
+// ---------- Fase 3: conferme ----------
+
+export async function creaRichiesta(form: FormData) {
+  const destinatari = testo(form, "destinatari"); // "tutti" oppure l'id di un corso
+  const opzioni = testo(form, "opzioni").split(/\r?\n/).map((o) => o.trim()).filter(Boolean).slice(0, 5);
+  const titolo = testo(form, "titolo");
+  const errore = (msg: string) => redirect(`/maestre/richieste/nuova?errore=${encodeURIComponent(msg)}`);
+  if (titolo.length < 2) errore("Scrivi un titolo.");
+  if (!destinatari) errore("Scegli a chi è rivolta la richiesta.");
+  if (opzioni.length < 2) errore("Servono almeno due risposte possibili, una per riga.");
+  if (new Set(opzioni).size !== opzioni.length) errore("Le risposte possibili devono essere diverse tra loro.");
+  const inizio = testo(form, "ora_inizio") || null;
+  const fine = testo(form, "ora_fine") || null;
+  if (inizio && fine && fine <= inizio) errore("L'orario di fine deve venire dopo l'inizio.");
+
+  const { codiceCasuale } = await import("@/lib/richieste");
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("richieste").insert({
+    codice: codiceCasuale(),
+    titolo,
+    messaggio: testo(form, "messaggio"),
+    firma: testo(form, "firma"),
+    tutta_la_scuola: destinatari === "tutti",
+    corso_id: destinatari === "tutti" ? null : destinatari,
+    opzioni,
+    scadenza: testo(form, "scadenza") || null,
+    data_evento: testo(form, "data_evento") || null,
+    ora_inizio: inizio,
+    ora_fine: fine,
+    luogo: testo(form, "luogo"),
+  }).select("id").single();
+  if (error || !data) errore("Non siamo riusciti a creare la richiesta.");
+  redirect(`/maestre/richieste/${data!.id}?creata=1`);
+}
+
+export async function chiudiRiapriRichiesta(form: FormData) {
+  const id = testo(form, "id");
+  const supabase = await supabaseServer();
+  await supabase.from("richieste").update({ chiusa: form.get("chiusa") === "si" }).eq("id", id);
+  redirect(`/maestre/richieste/${id}`);
+}
+
+export async function eliminaRichiesta(form: FormData) {
+  const supabase = await supabaseServer();
+  await supabase.from("richieste").delete().eq("id", testo(form, "id"));
+  redirect("/maestre/richieste");
+}
+
+// ---------- Allieve e famiglie ----------
+
+// "+39 333 123 4567" -> "3331234567": così la stessa famiglia si riconosce dal telefono.
+function telefonoPulito(t: string) {
+  const cifre = t.replace(/\D/g, "").replace(/^00/, "");
+  return cifre.length > 10 && cifre.startsWith("39") ? cifre.slice(2) : cifre;
+}
+
+type Db = Awaited<ReturnType<typeof supabaseServer>>;
+
+// Trova la famiglia con quel telefono (fratelli e sorelle finiscono insieme) oppure la crea.
+async function famigliaPer(db: Db, genitore: string, telefono: string) {
+  const tel = telefonoPulito(telefono);
+  if (tel) {
+    const { data } = await db.from("famiglie").select("id").eq("telefono", tel).limit(1);
+    if (data?.length) {
+      if (genitore) await db.from("famiglie").update({ nome_genitore: genitore }).eq("id", data[0].id);
+      return data[0].id as string;
+    }
+  }
+  const { data, error } = await db.from("famiglie").insert({ nome_genitore: genitore, telefono: tel }).select("id").single();
+  if (error || !data) throw new Error("Impossibile creare la famiglia");
+  return data.id as string;
+}
+
+export async function salvaAllieva(form: FormData) {
+  const id = testo(form, "id");
+  const nome = testo(form, "nome");
+  const cognome = testo(form, "cognome");
+  const ritorno = id ? `/maestre/allieve/${id}` : "/maestre/allieve";
+  if (!nome || !cognome) redirect(`${ritorno}?errore=${encodeURIComponent("Nome e cognome sono obbligatori.")}`);
+
+  const supabase = await supabaseServer();
+  let allievoId = id;
+  try {
+    const famiglia_id = await famigliaPer(supabase, testo(form, "genitore"), testo(form, "telefono"));
+    const dati = { nome, cognome, famiglia_id, data_nascita: testo(form, "data_nascita") || null, attivo: id ? form.get("attivo") === "on" : true };
+    if (id) {
+      const { error } = await supabase.from("allievi").update(dati).eq("id", id);
+      if (error) throw error;
+    } else {
+      const { data, error } = await supabase.from("allievi").insert(dati).select("id").single();
+      if (error || !data) throw error;
+      allievoId = data.id;
+    }
+    const corsi = form.getAll("corsi").map(String);
+    await supabase.from("iscrizioni").delete().eq("allievo_id", allievoId);
+    if (corsi.length) await supabase.from("iscrizioni").insert(corsi.map((corso_id) => ({ allievo_id: allievoId, corso_id })));
+  } catch {
+    redirect(`${ritorno}?errore=${encodeURIComponent("Salvataggio non riuscito.")}`);
+  }
+  redirect("/maestre/allieve?salvato=1");
+}
+
+export async function eliminaAllieva(form: FormData) {
+  const supabase = await supabaseServer();
+  await supabase.from("allievi").delete().eq("id", testo(form, "id"));
+  redirect("/maestre/allieve");
+}
+
+// Importazione da elenco: una riga per allieva, colonne separate da ; (o tabulazione, o virgola)
+//   nome ; cognome ; genitore ; telefono ; corsi (separati da |)
+export async function importaAllieve(form: FormData) {
+  const righe = testo(form, "elenco").split(/\r?\n/).map((r) => r.trim()).filter(Boolean);
+  const supabase = await supabaseServer();
+  const { data: corsi } = await supabase.from("corsi").select("id, nome");
+  const perNome = new Map((corsi ?? []).map((c) => [c.nome.toLowerCase().trim(), c.id as string]));
+  let importate = 0;
+  const saltate: number[] = [];
+
+  for (const [i, riga] of righe.entries()) {
+    const sep = riga.includes(";") ? ";" : riga.includes("\t") ? "\t" : ",";
+    const [nome = "", cognome = "", genitore = "", telefono = "", elencoCorsi = ""] = riga.split(sep).map((c) => c.trim());
+    if (i === 0 && nome.toLowerCase() === "nome") continue; // riga di intestazione
+    if (!nome || !cognome) { saltate.push(i + 1); continue; }
+    try {
+      const famiglia_id = await famigliaPer(supabase, genitore, telefono);
+      const { data, error } = await supabase.from("allievi").insert({ nome, cognome, famiglia_id }).select("id").single();
+      if (error || !data) throw error;
+      const ids = elencoCorsi.split("|").map((c) => perNome.get(c.toLowerCase().trim())).filter((x): x is string => Boolean(x));
+      if (ids.length) await supabase.from("iscrizioni").insert([...new Set(ids)].map((corso_id) => ({ allievo_id: data.id, corso_id })));
+      importate++;
+    } catch {
+      saltate.push(i + 1);
+    }
+  }
+  const msg = `Importate ${importate} allieve.` + (saltate.length ? ` Righe saltate: ${saltate.join(", ")}.` : "");
+  redirect(`/maestre/allieve?messaggio=${encodeURIComponent(msg)}`);
+}
