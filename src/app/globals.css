@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Stile "Magenta pop": colori e font della scuola, usati in tutto il sito */
+@theme {
+  --color-magenta: #d13583;
+  --color-magenta-scuro: #b02a6d;
+  --color-nero: #1a1a1a;
+  --color-giallo: #ffd23f;
+  --color-rosa: #f6c9dd;
+  --font-titolo: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: "Barlow", Arial, sans-serif;
+  --radius-card: 28px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-nero);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Titoli: Barlow Condensed, maiuscolo, molto pesante */
+.titolo {
+  font-family: var(--font-titolo);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+}
+
+.titolo-hero {
+  font-size: clamp(64px, 17vw, 168px);
+}
+
+.titolo-sezione {
+  font-size: clamp(48px, 10vw, 104px);
+}
+
+.titolo-card {
+  font-family: var(--font-titolo);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.95;
+  font-size: clamp(30px, 6vw, 40px);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-nero);
+  outline-offset: 3px;
+}
+
+.su-scuro :focus-visible {
+  outline-color: var(--color-giallo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Il motto nella hero: ogni riga resta intera, la misura si adatta allo schermo */
+.titolo-motto {
+  font-size: clamp(44px, 14.5vw, 150px);
+  white-space: nowrap;
+}
+@media (min-width: 1024px) {
+  .titolo-motto {
+    font-size: clamp(80px, 8.2vw, 128px);
+  }
+}
