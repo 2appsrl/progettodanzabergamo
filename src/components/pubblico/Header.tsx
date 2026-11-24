@@ -24,10 +24,10 @@ export function Header() {
 
   return (
     <header className="su-scuro sticky top-0 z-40 bg-magenta text-white">
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-[80px] max-w-7xl lg:h-[104px] items-center gap-2 px-3 min-[360px]:gap-3 min-[360px]:px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3" aria-label="Progetto Danza Bergamo, home" onClick={() => setAperto(false)}>
-          <Logo misura={52} />
-          <span className="hidden font-titolo text-[22px] font-extrabold uppercase leading-[0.95] sm:block">
+          <Logo invertito className="h-16 w-16 text-[11.5px] lg:h-[88px] lg:w-[88px] lg:text-[16px]" />
+          <span className="hidden font-titolo text-[24px] font-extrabold uppercase leading-[0.95] sm:block lg:text-[30px]">
             Progetto Danza<br />Bergamo
           </span>
         </Link>
@@ -42,9 +42,9 @@ export function Header() {
 
         <Link
           href="/genitori/accedi"
-          className="ml-auto inline-flex min-h-[48px] items-center gap-2 rounded-full bg-nero px-5 font-titolo text-[20px] font-extrabold uppercase text-white hover:bg-black lg:ml-2"
+          className="ml-auto inline-flex min-h-[48px] items-center gap-2 rounded-full bg-nero px-4 sm:px-5 font-titolo text-[20px] font-extrabold uppercase text-white hover:bg-black lg:ml-2"
         >
-          <IconaPersona width={20} height={20} /> Area genitori
+          <IconaPersona width={20} height={20} /> <span className="max-[359px]:sr-only">Area genitori</span>
         </Link>
 
         <button
@@ -59,7 +59,7 @@ export function Header() {
       </div>
 
       {aperto && (
-        <nav className="fixed inset-x-0 bottom-0 top-[72px] overflow-y-auto bg-magenta px-4 pb-10 pt-4 lg:hidden" aria-label="Menu principale">
+        <nav className="fixed inset-x-0 bottom-0 top-[80px] overflow-y-auto bg-magenta px-4 pb-10 pt-4 lg:hidden" aria-label="Menu principale">
           <ul>
             {voci.map((v) => (
               <li key={v.href} className="border-b-2 border-white/30">

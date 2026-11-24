@@ -15,7 +15,7 @@ export function SelettoreEta({ fasce, corsi, sedi }: { fasce: Fascia[]; corsi: C
 
   return (
     <>
-      <section id="eta" className="scroll-mt-20 bg-white px-4 pb-14 pt-14 sm:px-6 sm:pt-20">
+      <section id="eta" className="scroll-mt-28 bg-white px-4 pb-14 pt-14 sm:px-6 sm:pt-20">
         <div className="mx-auto max-w-7xl">
           <h2 className="titolo titolo-sezione">Quanti anni <span className="text-magenta">ha?</span></h2>
           <p className="mt-3 max-w-xl text-[19px] font-medium">Tocca l&apos;età: ti mostriamo solo i corsi giusti e la sua settimana.</p>
@@ -60,7 +60,7 @@ export function SelettoreEta({ fasce, corsi, sedi }: { fasce: Fascia[]; corsi: C
         </div>
       </section>
 
-      <section id="settimana" className="scroll-mt-20 bg-rosa px-4 py-14 sm:px-6 sm:py-20">
+      <section id="settimana" className="scroll-mt-28 bg-rosa px-4 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-7xl">
           <h2 className="titolo titolo-sezione">La sua <span className="text-magenta">settimana</span></h2>
           <p className="mb-7 mt-3 text-[19px] font-medium">
