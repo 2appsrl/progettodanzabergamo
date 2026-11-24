@@ -1,6 +1,6 @@
 import { campo } from "@/components/ui/campi";
 
-type Valori = { nome?: string; cognome?: string; data_nascita?: string | null; genitore?: string; telefono?: string; corsi?: string[] };
+type Valori = { nome?: string; cognome?: string; data_nascita?: string | null; genitore?: string; telefono?: string; email?: string | null; corsi?: string[] };
 
 // Campi comuni al modulo "nuova allieva" e "modifica allieva".
 export function CampiAllieva({ valori = {}, corsi }: { valori?: Valori; corsi: { id: string; nome: string }[] }) {
@@ -11,6 +11,9 @@ export function CampiAllieva({ valori = {}, corsi }: { valori?: Valori; corsi: {
       <label className="block font-bold">Nome del genitore<input name="genitore" maxLength={80} defaultValue={valori.genitore} className={campo} /></label>
       <label className="block font-bold">Telefono del genitore
         <input name="telefono" type="tel" inputMode="tel" maxLength={20} defaultValue={valori.telefono} placeholder="333 1234567" className={campo} />
+      </label>
+      <label className="block font-bold">Email del genitore <span className="font-medium">(serve per l&apos;area genitori)</span>
+        <input name="email" type="email" inputMode="email" maxLength={120} defaultValue={valori.email ?? ""} className={campo} />
       </label>
       <label className="block font-bold">Data di nascita <span className="font-medium">(facoltativa)</span>
         <input name="data_nascita" type="date" defaultValue={valori.data_nascita ?? ""} className={campo} />

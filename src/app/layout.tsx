@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   description: "Una scuola. Tante storie in movimento. Corsi di danza dai 3 anni a Gorle e Torre Boldone.",
   // Finché il sito è dimostrativo chiediamo a Google di non indicizzarlo.
   robots: { index: false, follow: false },
+  // Per installare il sito sul telefono come un'app.
+  appleWebApp: { capable: true, title: "Danza Bergamo", statusBarStyle: "default" },
+  icons: { apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = { themeColor: "#d13583", width: "device-width", initialScale: 1 };

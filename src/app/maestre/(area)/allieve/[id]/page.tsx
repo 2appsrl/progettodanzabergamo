@@ -11,14 +11,14 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Allieva" };
 
-type Riga = { id: string; nome: string; cognome: string; data_nascita: string | null; attivo: boolean; famiglie: { nome_genitore: string; telefono: string } | null; iscrizioni: { corso_id: string }[] };
+type Riga = { id: string; nome: string; cognome: string; data_nascita: string | null; attivo: boolean; famiglie: { nome_genitore: string; telefono: string; email: string | null } | null; iscrizioni: { corso_id: string }[] };
 
 export default async function ModificaAllieva({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ errore?: string }> }) {
   const [{ id }, esito] = await Promise.all([params, searchParams]);
   const supabase = await supabaseServer();
   const [corsi, { data }] = await Promise.all([
     getCorsi(supabase),
-    supabase.from("allievi").select("id, nome, cognome, data_nascita, attivo, famiglie(nome_genitore, telefono), iscrizioni(corso_id)").eq("id", id).maybeSingle(),
+    supabase.from("allievi").select("id, nome, cognome, data_nascita, attivo, famiglie(nome_genitore, telefono, email), iscrizioni(corso_id)").eq("id", id).maybeSingle(),
   ]);
   const a = data as unknown as Riga | null;
   if (!a) notFound();
@@ -30,7 +30,7 @@ export default async function ModificaAllieva({ params, searchParams }: { params
       <Avviso {...esito} />
       <form action={salvaAllieva} className="rounded-card bg-rosa p-5 sm:p-8">
         <input type="hidden" name="id" value={a.id} />
-        <CampiAllieva corsi={corsi} valori={{ nome: a.nome, cognome: a.cognome, data_nascita: a.data_nascita, genitore: a.famiglie?.nome_genitore, telefono: a.famiglie?.telefono, corsi: a.iscrizioni.map((i) => i.corso_id) }} />
+        <CampiAllieva corsi={corsi} valori={{ nome: a.nome, cognome: a.cognome, data_nascita: a.data_nascita, genitore: a.famiglie?.nome_genitore, telefono: a.famiglie?.telefono, email: a.famiglie?.email, corsi: a.iscrizioni.map((i) => i.corso_id) }} />
         <label className="mt-5 flex min-h-[56px] items-center gap-3 rounded-[18px] border-[3px] border-nero bg-white px-4 font-bold">
           <input type="checkbox" name="attivo" defaultChecked={a.attivo} className="h-6 w-6 accent-[#d13583]" />Frequenta quest&apos;anno
         </label>

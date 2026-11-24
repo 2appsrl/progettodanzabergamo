@@ -17,5 +17,5 @@ export async function GET(request: NextRequest) {
   if (codice) ok = !(await supabase.auth.exchangeCodeForSession(codice)).error;
   else if (token_hash && tipo) ok = !(await supabase.auth.verifyOtp({ token_hash, type: tipo })).error;
 
-  return NextResponse.redirect(new URL(ok ? destinazione : "/maestre/accedi?errore=link", url.origin));
+  return NextResponse.redirect(new URL(ok ? destinazione : `${destinazione.startsWith("/genitori") ? "/genitori" : "/maestre"}/accedi?errore=link`, url.origin));
 }

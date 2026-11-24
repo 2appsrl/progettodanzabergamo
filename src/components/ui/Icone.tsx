@@ -39,3 +39,7 @@ export const IconaWhatsApp = (p: P) => (
   </Base>
 );
 export const IconaSpunta = (p: P) => <Base {...p}><path d="M4 12.500l5 5L20 6.500" /></Base>;
+export const IconaCasa = (p: P) => <Base {...p}><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></Base>;
+export const IconaDocumento = (p: P) => <Base {...p}><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4M9 12h6M9 16h6" /></Base>;
+export const IconaCampana = (p: P) => <Base {...p}><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z" /><path d="M10 21h4" /></Base>;
+export const IconaGraffetta = (p: P) => <Base {...p}><path d="M20 11l-8 8a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7" /></Base>;

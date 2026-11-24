@@ -61,9 +61,9 @@ export default async function Allieve({ searchParams }: { searchParams: Promise<
         <summary className="titolo min-h-[48px] cursor-pointer text-[40px]">Importa un elenco</summary>
         <form action={importaAllieve} className="mt-4">
           <p className="font-medium">Incolla qui l&apos;elenco copiato da Excel o scritto a mano: una riga per allieva, con le colonne in quest&apos;ordine separate da punto e virgola.</p>
-          <p className="mt-2 rounded-[14px] bg-white px-3 py-2 font-mono text-[14px]">nome ; cognome ; genitore ; telefono ; corsi separati da |</p>
+          <p className="mt-2 rounded-[14px] bg-white px-3 py-2 font-mono text-[14px]">nome ; cognome ; genitore ; telefono ; corsi separati da | ; email</p>
           <label className="mt-4 block font-bold">Elenco
-            <textarea name="elenco" rows={6} required placeholder={"Giulia;Rossi;Maria Rossi;3331234567;Classica 1|Hip hop junior"} className={`${campo} py-3 font-mono text-[15px]`} />
+            <textarea name="elenco" rows={6} required placeholder={"Giulia;Rossi;Maria Rossi;3331234567;Classica 1|Hip hop junior;maria@email.it"} className={`${campo} py-3 font-mono text-[15px]`} />
           </label>
           <p className="mt-2 text-[15px] font-medium">Chi ha lo stesso telefono finisce nella stessa famiglia. I nomi dei corsi devono essere scritti come nel sito.</p>
           <button type="submit" className={classiBottone("nero", "mt-5")}>Importa</button>

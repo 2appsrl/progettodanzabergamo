@@ -27,7 +27,7 @@ export default async function Riepilogo() {
           </Link>
         ))}
       </div>
-      <p className="mt-8 rounded-card bg-rosa p-5 font-medium">In arrivo nelle prossime fasi: avvisi, calendario, area genitori e certificati.</p>
+      <p className="mt-8 rounded-card bg-rosa p-5 font-medium">In arrivo nella prossima fase: certificati medici, documenti e consensi privacy.</p>
     </>
   );
 }

@@ -1,0 +1,12 @@
+-- FASE 4 — Area genitori, avvisi, calendario, notifiche.
+-- Il testo completo di questa migrazione è registrato nel progetto Supabase
+-- (Database > Migrations > fase4_genitori_avvisi_calendario). In sintesi:
+--   * privato.mie_famiglie() / miei_corsi() / e_genitore(): riconoscono il genitore dall'email di login
+--   * famiglie.token_calendario: codice segreto per il feed calendario personale
+--   * regole RLS: un genitore legge solo famiglia, figli, iscrizioni, richieste, risposte,
+--     eventi e avvisi che lo riguardano
+--   * aggiorna_mio_profilo(): il genitore corregge solo nome e telefono
+--   * eventi: nuove colonne corso_id, ora_inizio, ora_fine; nuovi tipi Prova e Chiusura
+--   * tabelle avvisi, letture_avvisi, push_iscrizioni
+--   * spazio file privato "allegati" (PDF/immagini fino a 5 MB)
+--   * calendario_famiglia(token): dati per il feed .ics

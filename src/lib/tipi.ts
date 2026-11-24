@@ -52,7 +52,11 @@ export type Corso = {
 export type Evento = {
   id: string;
   titolo: string;
-  tipo: "Saggio" | "Evento" | "Stage";
+  tipo: "Saggio" | "Evento" | "Stage" | "Prova" | "Chiusura";
+  corso_id?: string | null; // vuoto = tutta la scuola
+  ora_inizio?: string | null;
+  ora_fine?: string | null;
+  pubblicato?: boolean;
   data: string; // AAAA-MM-GG
   luogo: string;
   descrizione: string;

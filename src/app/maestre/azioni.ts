@@ -205,16 +205,18 @@ function telefonoPulito(t: string) {
 type Db = Awaited<ReturnType<typeof supabaseServer>>;
 
 // Trova la famiglia con quel telefono (fratelli e sorelle finiscono insieme) oppure la crea.
-async function famigliaPer(db: Db, genitore: string, telefono: string) {
+async function famigliaPer(db: Db, genitore: string, telefono: string, emailGrezza = "") {
   const tel = telefonoPulito(telefono);
+  const email = /^\S+@\S+\.\S+$/.test(emailGrezza) ? emailGrezza.toLowerCase() : "";
   if (tel) {
     const { data } = await db.from("famiglie").select("id").eq("telefono", tel).limit(1);
     if (data?.length) {
-      if (genitore) await db.from("famiglie").update({ nome_genitore: genitore }).eq("id", data[0].id);
+      const modifiche = { ...(genitore ? { nome_genitore: genitore } : {}), ...(email ? { email } : {}) };
+      if (Object.keys(modifiche).length) await db.from("famiglie").update(modifiche).eq("id", data[0].id);
       return data[0].id as string;
     }
   }
-  const { data, error } = await db.from("famiglie").insert({ nome_genitore: genitore, telefono: tel }).select("id").single();
+  const { data, error } = await db.from("famiglie").insert({ nome_genitore: genitore, telefono: tel, email: email || null }).select("id").single();
   if (error || !data) throw new Error("Impossibile creare la famiglia");
   return data.id as string;
 }
@@ -229,7 +231,7 @@ export async function salvaAllieva(form: FormData) {
   const supabase = await supabaseServer();
   let allievoId = id;
   try {
-    const famiglia_id = await famigliaPer(supabase, testo(form, "genitore"), testo(form, "telefono"));
+    const famiglia_id = await famigliaPer(supabase, testo(form, "genitore"), testo(form, "telefono"), testo(form, "email"));
     const dati = { nome, cognome, famiglia_id, data_nascita: testo(form, "data_nascita") || null, attivo: id ? form.get("attivo") === "on" : true };
     if (id) {
       const { error } = await supabase.from("allievi").update(dati).eq("id", id);
@@ -255,7 +257,7 @@ export async function eliminaAllieva(form: FormData) {
 }
 
 // Importazione da elenco: una riga per allieva, colonne separate da ; (o tabulazione, o virgola)
-//   nome ; cognome ; genitore ; telefono ; corsi (separati da |)
+//   nome ; cognome ; genitore ; telefono ; corsi (separati da |) ; email del genitore (facoltativa)
 export async function importaAllieve(form: FormData) {
   const righe = testo(form, "elenco").split(/\r?\n/).map((r) => r.trim()).filter(Boolean);
   const supabase = await supabaseServer();
@@ -266,11 +268,11 @@ export async function importaAllieve(form: FormData) {
 
   for (const [i, riga] of righe.entries()) {
     const sep = riga.includes(";") ? ";" : riga.includes("\t") ? "\t" : ",";
-    const [nome = "", cognome = "", genitore = "", telefono = "", elencoCorsi = ""] = riga.split(sep).map((c) => c.trim());
+    const [nome = "", cognome = "", genitore = "", telefono = "", elencoCorsi = "", email = ""] = riga.split(sep).map((c) => c.trim());
     if (i === 0 && nome.toLowerCase() === "nome") continue; // riga di intestazione
     if (!nome || !cognome) { saltate.push(i + 1); continue; }
     try {
-      const famiglia_id = await famigliaPer(supabase, genitore, telefono);
+      const famiglia_id = await famigliaPer(supabase, genitore, telefono, email);
       const { data, error } = await supabase.from("allievi").insert({ nome, cognome, famiglia_id }).select("id").single();
       if (error || !data) throw error;
       const ids = elencoCorsi.split("|").map((c) => perNome.get(c.toLowerCase().trim())).filter((x): x is string => Boolean(x));
@@ -282,4 +284,99 @@ export async function importaAllieve(form: FormData) {
   }
   const msg = `Importate ${importate} allieve.` + (saltate.length ? ` Righe saltate: ${saltate.join(", ")}.` : "");
   redirect(`/maestre/allieve?messaggio=${encodeURIComponent(msg)}`);
+}
+
+// ---------- Fase 4: avvisi e calendario ----------
+
+const TIPI_ALLEGATO = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+
+// Le famiglie a cui è rivolto qualcosa: null = tutta la scuola, altrimenti quelle con un'allieva attiva nel corso.
+async function famiglieDelCorso(db: Db, corsoId: string | null) {
+  if (!corsoId) return null;
+  const { data } = await db.from("allievi").select("famiglia_id, iscrizioni!inner(corso_id)").eq("attivo", true).eq("iscrizioni.corso_id", corsoId);
+  return [...new Set((data ?? []).map((a) => a.famiglia_id as string))];
+}
+
+export async function creaAvviso(form: FormData) {
+  const errore = (msg: string) => redirect(`/maestre/avvisi/nuovo?errore=${encodeURIComponent(msg)}`);
+  const titolo = testo(form, "titolo");
+  const destinatari = testo(form, "destinatari");
+  if (titolo.length < 2) errore("Scrivi un titolo.");
+  if (!destinatari) errore("Scegli a chi è rivolto l'avviso.");
+  const supabase = await supabaseServer();
+
+  // Allegato facoltativo: PDF o immagine, massimo 5 MB.
+  const file = form.get("allegato");
+  let allegato_path: string | null = null;
+  let allegato_nome: string | null = null;
+  if (file instanceof File && file.size > 0) {
+    if (file.size > 5 * 1024 * 1024) errore("L'allegato è troppo grande: massimo 5 MB.");
+    if (!TIPI_ALLEGATO.includes(file.type)) errore("L'allegato deve essere un PDF o un'immagine (JPG, PNG).");
+    const estensione = file.type === "application/pdf" ? "pdf" : file.type.split("/")[1].replace("jpeg", "jpg");
+    allegato_path = `${crypto.randomUUID()}.${estensione}`;
+    allegato_nome = file.name.slice(0, 120);
+    const { error } = await supabase.storage.from("allegati").upload(allegato_path, file, { contentType: file.type });
+    if (error) errore("Non siamo riusciti a caricare l'allegato. Riprova.");
+  }
+
+  const corso_id = destinatari === "tutti" ? null : destinatari;
+  const { data, error } = await supabase.from("avvisi").insert({
+    titolo, testo: testo(form, "testo"), firma: testo(form, "firma"),
+    tutta_la_scuola: destinatari === "tutti", corso_id, allegato_path, allegato_nome,
+  }).select("id").single();
+  if (error || !data) {
+    if (allegato_path) await supabase.storage.from("allegati").remove([allegato_path]);
+    errore("Non siamo riusciti a pubblicare l'avviso.");
+  }
+
+  let esito = "";
+  if (form.get("notifica") === "on") {
+    const { inviaPush } = await import("@/lib/push");
+    const r = await inviaPush(supabase, await famiglieDelCorso(supabase, corso_id), { titolo, testo: testo(form, "testo").slice(0, 140), url: `/genitori/avvisi/${data!.id}` });
+    esito = r.configurato ? `&notifiche=${r.inviate}` : "&notifiche=spente";
+  }
+  redirect(`/maestre/avvisi/${data!.id}?creato=1${esito}`);
+}
+
+export async function eliminaAvviso(form: FormData) {
+  const id = testo(form, "id");
+  const supabase = await supabaseServer();
+  const { data } = await supabase.from("avvisi").select("allegato_path").eq("id", id).maybeSingle();
+  if (data?.allegato_path) await supabase.storage.from("allegati").remove([data.allegato_path]);
+  await supabase.from("avvisi").delete().eq("id", id);
+  redirect("/maestre/avvisi");
+}
+
+const COLORE_TIPO: Record<string, string> = { Saggio: "magenta", Evento: "giallo", Stage: "nero", Prova: "rosa", Chiusura: "nero" };
+
+export async function salvaEvento(form: FormData) {
+  const id = testo(form, "id");
+  const errore = (msg: string) => redirect(`/maestre/calendario?errore=${encodeURIComponent(msg)}`);
+  const titolo = testo(form, "titolo");
+  const data = testo(form, "data");
+  const tipo = testo(form, "tipo") || "Evento";
+  const inizio = testo(form, "ora_inizio") || null;
+  const fine = testo(form, "ora_fine") || null;
+  const destinatari = testo(form, "destinatari");
+  if (titolo.length < 2 || !data) errore("Titolo e giorno sono obbligatori.");
+  if (!(tipo in COLORE_TIPO)) errore("Tipo di evento non valido.");
+  if (inizio && fine && fine <= inizio) errore("L'orario di fine deve venire dopo l'inizio.");
+  const dati = {
+    titolo, tipo, data, ora_inizio: inizio, ora_fine: inizio ? fine : null,
+    luogo: testo(form, "luogo"), descrizione: testo(form, "descrizione"),
+    corso_id: !destinatari || destinatari === "tutti" ? null : destinatari,
+    colore: COLORE_TIPO[tipo], pubblicato: form.get("pubblicato") === "on",
+  };
+  const supabase = await supabaseServer();
+  const { error } = id ? await supabase.from("eventi").update(dati).eq("id", id) : await supabase.from("eventi").insert(dati);
+  if (error) errore("Salvataggio non riuscito.");
+  aggiornaSito();
+  redirect("/maestre/calendario?salvato=1");
+}
+
+export async function eliminaEvento(form: FormData) {
+  const supabase = await supabaseServer();
+  await supabase.from("eventi").delete().eq("id", testo(form, "id"));
+  aggiornaSito();
+  redirect("/maestre/calendario");
 }
