@@ -1,6 +1,6 @@
 // Unico punto da cui le pagine leggono i contenuti: ora arrivano da Supabase.
 import { supabasePubblico } from "./supabase/pubblico";
-import type { Corso, Evento, Fascia, Maestra, Scuola, Sede } from "./tipi";
+import type { Corso, Evento, Fascia, Maestra, Prodotto, Scuola, Sede } from "./tipi";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 function controlla<T>(risultato: { data: T | null; error: { message: string } | null }): T {
@@ -51,4 +51,7 @@ export async function getCorsoPerId(db: SupabaseClient, id: string) {
 }
 export async function getEventi(): Promise<Evento[]> {
   return controlla(await supabasePubblico().from("eventi").select("*").order("data"));
+}
+export async function getProdotti(db: SupabaseClient = supabasePubblico()): Promise<Prodotto[]> {
+  return controlla(await db.from("prodotti").select("*").order("ordine").order("nome"));
 }

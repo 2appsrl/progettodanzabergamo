@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: { default: "Area maestre", template: 
 
 const voci = [
   ["/maestre", "Riepilogo"], ["/maestre/prove", "Richieste di prova"],
-  ["/maestre/corsi", "Corsi e orari"], ["/maestre/impostazioni", "Impostazioni"],
+  ["/maestre/corsi", "Corsi e orari"], ["/maestre/merch", "Merchandising"], ["/maestre/impostazioni", "Impostazioni"],
 ];
 
 export default async function LayoutMaestre({ children }: { children: React.ReactNode }) {

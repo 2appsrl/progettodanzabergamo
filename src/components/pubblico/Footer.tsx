@@ -27,7 +27,7 @@ export async function Footer() {
           <h2 className="font-titolo text-[26px] font-extrabold uppercase">Link utili</h2>
           <ul className="mt-3 space-y-1">
             {[
-              ["/corsi", "Corsi"], ["/orari", "Orari"], ["/prenota-una-prova", "Prenota una prova"],
+              ["/corsi", "Corsi"], ["/orari", "Orari"], ["/merchandising", "Merchandising"], ["/prenota-una-prova", "Prenota una prova"],
               ["/privacy", "Privacy"], ["/cookie", "Cookie"],
             ].map(([href, testo]) => (
               <li key={href}><Link href={href} className="inline-block py-1.5 underline-offset-4 hover:underline">{testo}</Link></li>

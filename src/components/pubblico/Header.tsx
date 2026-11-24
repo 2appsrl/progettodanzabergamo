@@ -10,6 +10,7 @@ const voci = [
   { href: "/orari", testo: "Orari" },
   { href: "/chi-siamo", testo: "Chi siamo" },
   { href: "/eventi", testo: "Eventi" },
+  { href: "/merchandising", testo: "Merch" },
   { href: "/contatti", testo: "Contatti" },
 ];
 
@@ -27,12 +28,12 @@ export function Header() {
       <div className="mx-auto flex h-[80px] max-w-7xl lg:h-[104px] items-center gap-2 px-3 min-[360px]:gap-3 min-[360px]:px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3" aria-label="Progetto Danza Bergamo, home" onClick={() => setAperto(false)}>
           <Logo invertito className="h-16 w-16 text-[11.5px] lg:h-[88px] lg:w-[88px] lg:text-[16px]" />
-          <span className="hidden font-titolo text-[24px] font-extrabold uppercase leading-[0.95] sm:block lg:text-[30px]">
+          <span className="hidden font-titolo text-[24px] font-extrabold uppercase leading-[0.95] whitespace-nowrap sm:block lg:text-[30px]">
             Progetto Danza<br />Bergamo
           </span>
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-1 lg:flex" aria-label="Menu principale">
+        <nav className="ml-auto hidden items-center gap-1 whitespace-nowrap xl:flex" aria-label="Menu principale">
           {voci.map((v) => (
             <Link key={v.href} href={v.href} className="rounded-full px-4 py-2.5 font-titolo text-[22px] font-extrabold uppercase hover:bg-magenta-scuro">
               {v.testo}
@@ -42,14 +43,14 @@ export function Header() {
 
         <Link
           href="/genitori/accedi"
-          className="ml-auto inline-flex min-h-[48px] items-center gap-2 rounded-full bg-nero px-4 sm:px-5 font-titolo text-[20px] font-extrabold uppercase text-white hover:bg-black lg:ml-2"
+          className="ml-auto inline-flex min-h-[48px] items-center gap-2 rounded-full bg-nero px-4 sm:px-5 whitespace-nowrap font-titolo text-[20px] font-extrabold uppercase text-white hover:bg-black xl:ml-2"
         >
           <IconaPersona width={20} height={20} /> <span className="max-[359px]:sr-only">Area genitori</span>
         </Link>
 
         <button
           type="button"
-          className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-nero lg:hidden"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-nero xl:hidden"
           aria-label={aperto ? "Chiudi il menu" : "Apri il menu"}
           aria-expanded={aperto}
           onClick={() => setAperto(!aperto)}
@@ -59,7 +60,7 @@ export function Header() {
       </div>
 
       {aperto && (
-        <nav className="fixed inset-x-0 bottom-0 top-[80px] overflow-y-auto bg-magenta px-4 pb-10 pt-4 lg:hidden" aria-label="Menu principale">
+        <nav className="fixed inset-x-0 bottom-0 top-[80px] overflow-y-auto bg-magenta px-4 pb-10 pt-4 lg:top-[104px] xl:hidden" aria-label="Menu principale">
           <ul>
             {voci.map((v) => (
               <li key={v.href} className="border-b-2 border-white/30">

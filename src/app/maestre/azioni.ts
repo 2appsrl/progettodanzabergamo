@@ -128,3 +128,20 @@ export async function salvaSede(form: FormData) {
   aggiornaSito();
   redirect(error ? "/maestre/impostazioni?errore=Salvataggio%20non%20riuscito." : "/maestre/impostazioni?salvato=1");
 }
+
+export async function salvaProdotto(form: FormData) {
+  const prezzo = testo(form, "prezzo").replace(",", ".");
+  const numero = prezzo === "" ? null : Number(prezzo);
+  if (numero !== null && (!Number.isFinite(numero) || numero < 0 || numero > 9999)) {
+    redirect(`/maestre/merch?errore=${encodeURIComponent("Controlla il prezzo: usa solo numeri, per esempio 25 oppure 19,50.")}`);
+  }
+  const supabase = await supabaseServer();
+  const { error } = await supabase.from("prodotti").update({
+    nome: testo(form, "nome"),
+    descrizione: testo(form, "descrizione"),
+    prezzo: numero,
+    pubblicato: form.get("pubblicato") === "on",
+  }).eq("id", testo(form, "id"));
+  aggiornaSito();
+  redirect(error ? "/maestre/merch?errore=Salvataggio%20non%20riuscito." : "/maestre/merch?salvato=1");
+}

@@ -4,10 +4,13 @@ import { Bottone } from "@/components/ui/Bottone";
 import { FotoSegnaposto } from "@/components/ui/FotoSegnaposto";
 import { IconaFreccia } from "@/components/ui/Icone";
 import { stileCard } from "@/lib/colori";
-import { getCorsi, getFasce, getMaestre, getSedi } from "@/lib/dati";
+import { GrigliaProdotti } from "@/components/pubblico/GrigliaProdotti";
+import { getCorsi, getFasce, getMaestre, getProdotti, getScuola, getSedi } from "@/lib/dati";
 
 export default async function Home() {
-  const [fasce, corsi, sedi, maestre] = await Promise.all([getFasce(), getCorsi(), getSedi(), getMaestre()]);
+  const [fasce, corsi, sedi, maestre, prodotti, scuola] = await Promise.all([
+    getFasce(), getCorsi(), getSedi(), getMaestre(), getProdotti(), getScuola(),
+  ]);
   return (
     <>
       <Hero />
@@ -30,6 +33,17 @@ export default async function Home() {
           <Bottone href="/chi-siamo" variante="contorno" className="mt-7">Chi siamo <IconaFreccia /></Bottone>
         </div>
       </section>
+
+      {prodotti.length > 0 && (
+        <section className="bg-giallo px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="titolo titolo-sezione">Il nostro <span className="text-magenta">merch</span></h2>
+            <p className="mb-7 mt-3 text-[19px] font-medium">Porta la scuola con te, in sala e fuori.</p>
+            <GrigliaProdotti prodotti={prodotti.slice(0, 4)} whatsapp={scuola.whatsapp} />
+            <Bottone href="/merchandising" variante="nero" className="mt-7">Tutto il merchandising <IconaFreccia /></Bottone>
+          </div>
+        </section>
+      )}
 
       <section className="su-scuro bg-nero px-4 py-16 text-white sm:px-6 sm:py-24">
         <div className="mx-auto max-w-7xl">

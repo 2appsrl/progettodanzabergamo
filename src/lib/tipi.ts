@@ -79,3 +79,14 @@ export type RichiestaProva = {
   note_maestre: string;
   creata_il: string;
 };
+
+export type Prodotto = {
+  id: string;
+  nome: string;
+  descrizione: string;
+  prezzo: number | null; // null = prezzo su richiesta
+  foto: string | null;
+  colore: Colore;
+  pubblicato: boolean;
+  ordine: number;
+};

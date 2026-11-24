@@ -46,3 +46,7 @@ export function numeroWhatsApp(telefono: string) {
 export function dataOra(iso: string) {
   return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }).format(new Date(iso));
 }
+
+export function prezzoEuro(prezzo: number) {
+  return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(prezzo);
+}
