@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SelettoreFiglio } from "@/components/genitori/SelettoreFiglio";
 import { IconaCalendario, IconaCampana, IconaFreccia, IconaGraffetta, IconaLuogo } from "@/components/ui/Icone";
 import { Pill } from "@/components/ui/Pill";
+import { dataBreve, statoCertificato, ultimoPerAllieva, type Certificato } from "@/lib/certificati";
 import { getCorsi, getSedi } from "@/lib/dati";
 import { dataOra } from "@/lib/formato";
 import { aggiungiGiorni, caricaFamiglia, figliScelti, giornoSettimana, oggiRoma, riguarda } from "@/lib/genitori";
@@ -19,14 +20,19 @@ export default async function HomeGenitori({ searchParams }: { searchParams: Pro
   const corsiMiei = new Set(figli.flatMap((f) => f.corsi));
   const oggi = oggiRoma();
 
-  const [corsi, sedi, { data: richieste }, { data: risposte }, { data: avvisi }, { data: letture }, { data: eventi }] = await Promise.all([
+  const [corsi, sedi, { data: richieste }, { data: risposte }, { data: avvisi }, { data: letture }, { data: eventi }, { data: certificati }] = await Promise.all([
     getCorsi(supabase), getSedi(supabase),
     supabase.from("richieste").select("id, codice, titolo, data_evento, ora_inizio, ora_fine, scadenza, chiusa, tutta_la_scuola, corso_id").eq("chiusa", false).order("creata_il", { ascending: false }).limit(30),
     supabase.from("risposte").select("richiesta_id, allievo_id, scelta").in("allievo_id", tutti.map((f) => f.id)),
     supabase.from("avvisi").select("id, titolo, creato_il, tutta_la_scuola, corso_id, allegato_nome").order("creato_il", { ascending: false }).limit(30),
     supabase.from("letture_avvisi").select("avviso_id").in("famiglia_id", famiglie.map((f) => f.id)),
     supabase.from("eventi").select("id, titolo, tipo, data, ora_inizio, ora_fine, luogo, corso_id").gte("data", oggi).order("data").limit(30),
+    supabase.from("certificati").select("id, allievo_id, scadenza, file_nome, caricato_il").in("allievo_id", tutti.map((f) => f.id)),
   ]);
+
+  // Certificati medici scaduti o che scadono entro 30 giorni.
+  const ultimi = ultimoPerAllieva((certificati ?? []) as Certificato[]);
+  const daRinnovare = figli.map((f) => ({ f, cert: ultimi.get(f.id), stato: statoCertificato(ultimi.get(f.id)) })).filter((x) => x.stato === "scaduto" || x.stato === "in_scadenza");
 
   // Richieste di conferma ancora aperte, con lo stato della risposta per ogni figlio.
   const aperte = (richieste ?? []).filter((r) => riguarda(r, corsiMiei) && !scadenzaPassata(r.scadenza)).map((r) => {
@@ -61,6 +67,16 @@ export default async function HomeGenitori({ searchParams }: { searchParams: Pro
   return (
     <>
       <SelettoreFiglio figli={tutti} scelto={figlio} base="/genitori" />
+
+      {daRinnovare.map(({ f, cert, stato }) => (
+        <Link key={f.id} href="/genitori/documenti" className="su-scuro mb-4 flex items-center gap-4 rounded-card bg-nero p-5 text-white">
+          <div className="min-w-0 flex-1">
+            <p className="font-titolo text-[28px] font-extrabold uppercase leading-none text-giallo">Certificato medico {stato === "scaduto" ? "scaduto" : "in scadenza"}</p>
+            <p className="mt-2 font-medium">Quello di {f.nome} {stato === "scaduto" ? "è scaduto" : "scade"} il {dataBreve(cert!.scadenza)}. Tocca per caricare il nuovo.</p>
+          </div>
+          <IconaFreccia className="shrink-0" />
+        </Link>
+      ))}
 
       {aperte.length > 0 && (
         <section aria-labelledby="t-conferme" className="mb-8">

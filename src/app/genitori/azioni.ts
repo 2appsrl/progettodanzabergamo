@@ -68,3 +68,33 @@ export async function disattivaNotifiche(endpoint: string): Promise<boolean> {
   const { error } = await supabase.from("push_iscrizioni").delete().eq("endpoint", endpoint);
   return !error;
 }
+
+// ---------- Fase 5: certificati e consensi ----------
+
+// Il genitore carica il nuovo certificato medico di una figlia o un figlio.
+export async function caricaCertificato(form: FormData) {
+  const errore = (msg: string) => redirect(`/genitori/documenti?errore=${encodeURIComponent(msg)}`);
+  const allievo_id = testo(form, "allievo_id");
+  const scadenza = testo(form, "scadenza");
+  if (!/^[0-9a-f-]{36}$/.test(allievo_id) || !scadenza) errore("Indica la data di scadenza scritta sul certificato.");
+  const supabase = await supabaseServer();
+  const { caricaFile } = await import("@/lib/carica");
+  const file = await caricaFile(supabase, "certificati", allievo_id, form.get("file"));
+  if ("errore" in file) errore(file.errore!);
+  if (!("path" in file)) errore("Scegli la foto o il PDF del certificato.");
+  const { error } = await supabase.from("certificati").insert({ allievo_id, scadenza, file_path: (file as { path: string }).path, file_nome: (file as { nome: string }).nome });
+  if (error) errore("Non siamo riusciti a salvare il certificato. Riprova.");
+  redirect("/genitori/documenti?salvato=1");
+}
+
+// Consenso per foto e video: ogni scelta viene aggiunta allo storico con data e versione dell'informativa.
+export async function registraConsenso(form: FormData) {
+  const allievo_id = testo(form, "allievo_id");
+  const supabase = await supabaseServer();
+  const { data: allievo } = await supabase.from("allievi").select("famiglia_id").eq("id", allievo_id).maybeSingle();
+  const { VERSIONE_INFORMATIVA } = await import("@/lib/certificati");
+  const { error } = allievo
+    ? await supabase.from("consensi").insert({ allievo_id, famiglia_id: allievo.famiglia_id, tipo: "foto_video", concesso: testo(form, "concesso") === "si", versione_informativa: VERSIONE_INFORMATIVA })
+    : { error: true };
+  redirect(error ? "/genitori/profilo?errore=Non%20siamo%20riusciti%20a%20salvare%20il%20consenso." : "/genitori/profilo?salvato=1#consensi");
+}

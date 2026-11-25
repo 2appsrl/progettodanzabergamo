@@ -12,13 +12,13 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Allieve e famiglie" };
 
-type Riga = { id: string; nome: string; cognome: string; attivo: boolean; famiglie: { nome_genitore: string; telefono: string } | null; iscrizioni: { corso_id: string }[] };
+type Riga = { id: string; nome: string; cognome: string; attivo: boolean; famiglie: { nome_genitore: string; telefono: string } | null; iscrizioni: { corso_id: string }[]; consensi: { concesso: boolean; registrato_il: string }[] };
 
 export default async function Allieve({ searchParams }: { searchParams: Promise<{ salvato?: string; errore?: string; messaggio?: string }> }) {
   const supabase = await supabaseServer();
   const [corsi, esito, { data }] = await Promise.all([
     getCorsi(supabase), searchParams,
-    supabase.from("allievi").select("id, nome, cognome, attivo, famiglie(nome_genitore, telefono), iscrizioni(corso_id)").order("cognome").order("nome"),
+    supabase.from("allievi").select("id, nome, cognome, attivo, famiglie(nome_genitore, telefono), iscrizioni(corso_id), consensi(concesso, registrato_il)").order("cognome").order("nome"),
   ]);
   const allieve = (data ?? []) as unknown as Riga[];
   const nomeCorso = new Map(corsi.map((c) => [c.id, c.nome]));
@@ -40,6 +40,10 @@ export default async function Allieve({ searchParams }: { searchParams: Promise<
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {a.iscrizioni.map((i) => <Pill key={i.corso_id} className="bg-rosa text-[13px] text-nero">{nomeCorso.get(i.corso_id) ?? "Corso"}</Pill>)}
                   {a.iscrizioni.length === 0 && <Pill className="bg-giallo text-[13px] text-nero">Nessun corso</Pill>}
+                  {(() => {
+                    const ultimo = [...a.consensi].sort((x, y) => y.registrato_il.localeCompare(x.registrato_il))[0];
+                    return <Pill className={`text-[13px] ${ultimo?.concesso ? "bg-nero text-white" : "bg-white text-nero border-2 border-nero"}`}>Foto: {ultimo ? (ultimo.concesso ? "sì" : "no") : "non scelto"}</Pill>;
+                  })()}
                   {!a.attivo && <Pill className="bg-nero text-[13px] text-white">Non attiva</Pill>}
                 </div>
               </div>

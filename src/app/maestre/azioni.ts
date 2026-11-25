@@ -380,3 +380,62 @@ export async function eliminaEvento(form: FormData) {
   aggiornaSito();
   redirect("/maestre/calendario");
 }
+
+// ---------- Fase 5: certificati e documenti ----------
+
+export async function salvaCertificato(form: FormData) {
+  const errore = (msg: string) => redirect(`/maestre/certificati?errore=${encodeURIComponent(msg)}`);
+  const allievo_id = testo(form, "allievo_id");
+  const scadenza = testo(form, "scadenza");
+  if (!allievo_id || !scadenza) errore("Scegli l'allieva e la data di scadenza.");
+  const supabase = await supabaseServer();
+  const { caricaFile } = await import("@/lib/carica");
+  const file = await caricaFile(supabase, "certificati", allievo_id, form.get("file"));
+  if ("errore" in file) errore(file.errore!);
+  const { error } = await supabase.from("certificati").insert({
+    allievo_id, scadenza, file_path: "path" in file ? file.path : null, file_nome: "path" in file ? file.nome : null,
+  });
+  if (error) errore("Salvataggio non riuscito.");
+  redirect("/maestre/certificati?salvato=1");
+}
+
+export async function eliminaCertificato(form: FormData) {
+  const id = testo(form, "id");
+  const supabase = await supabaseServer();
+  const { data } = await supabase.from("certificati").select("file_path").eq("id", id).maybeSingle();
+  if (data?.file_path) await supabase.storage.from("certificati").remove([data.file_path]);
+  await supabase.from("certificati").delete().eq("id", id);
+  redirect("/maestre/certificati");
+}
+
+export async function creaDocumento(form: FormData) {
+  const errore = (msg: string) => redirect(`/maestre/documenti?errore=${encodeURIComponent(msg)}`);
+  const titolo = testo(form, "titolo");
+  const link = testo(form, "link");
+  const destinatari = testo(form, "destinatari");
+  if (titolo.length < 2) errore("Scrivi un titolo.");
+  if (link && !/^https:\/\/\S+$/.test(link)) errore("Il link deve iniziare con https://");
+  const supabase = await supabaseServer();
+  const { caricaFile, TIPI_CON_AUDIO } = await import("@/lib/carica");
+  const file = await caricaFile(supabase, "documenti", "", form.get("file"), TIPI_CON_AUDIO);
+  if ("errore" in file) errore(file.errore!);
+  if (!("path" in file) && !link) errore("Carica un file oppure incolla un link.");
+  const { error } = await supabase.from("documenti").insert({
+    titolo, categoria: testo(form, "categoria") || "Altro", corso_id: !destinatari || destinatari === "tutti" ? null : destinatari,
+    file_path: "path" in file ? file.path : null, file_nome: "path" in file ? file.nome : null, link: link || null,
+  });
+  if (error) {
+    if ("path" in file && file.path) await supabase.storage.from("documenti").remove([file.path]);
+    errore("Salvataggio non riuscito.");
+  }
+  redirect("/maestre/documenti?salvato=1");
+}
+
+export async function eliminaDocumento(form: FormData) {
+  const id = testo(form, "id");
+  const supabase = await supabaseServer();
+  const { data } = await supabase.from("documenti").select("file_path").eq("id", id).maybeSingle();
+  if (data?.file_path) await supabase.storage.from("documenti").remove([data.file_path]);
+  await supabase.from("documenti").delete().eq("id", id);
+  redirect("/maestre/documenti");
+}

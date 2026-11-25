@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MappaSede } from "@/components/pubblico/MappaSede";
 import { TestataPagina } from "@/components/pubblico/TestataPagina";
 import { Bottone } from "@/components/ui/Bottone";
 import { IconaInstagram, IconaLuogo, IconaWhatsApp } from "@/components/ui/Icone";
@@ -29,7 +30,7 @@ export default async function Contatti() {
             const mappa = `https://www.openstreetmap.org/export/embed.html?bbox=${s.lon - d},${s.lat - d * 0.6},${s.lon + d},${s.lat + d * 0.6}&layer=mapnik`;
             return (
               <article key={s.id} className={`overflow-hidden rounded-card ${i ? "bg-giallo" : "bg-rosa"}`}>
-                <iframe title={`Mappa della sede di ${s.nome}`} src={mappa} loading="lazy" className="h-[280px] w-full border-0 sm:h-[340px]" />
+                <MappaSede nome={s.nome} src={mappa} />
                 <div className="p-6">
                   <h2 className="titolo text-[56px]">{s.nome}</h2>
                   <p className="mt-2 flex items-start gap-2 text-[18px] font-bold"><IconaLuogo className="mt-0.5 shrink-0" />{s.indirizzo}</p>

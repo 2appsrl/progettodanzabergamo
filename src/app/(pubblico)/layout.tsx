@@ -1,3 +1,4 @@
+import { BannerCookie } from "@/components/pubblico/BannerCookie";
 import { BannerEsempio } from "@/components/pubblico/BannerEsempio";
 import { BottoneWhatsApp } from "@/components/pubblico/BottoneWhatsApp";
 import { Footer } from "@/components/pubblico/Footer";
@@ -16,6 +17,7 @@ export default function LayoutPubblico({ children }: { children: React.ReactNode
       <main className="flex-1">{children}</main>
       <Footer />
       <BottoneWhatsApp />
+      <BannerCookie />
     </>
   );
 }

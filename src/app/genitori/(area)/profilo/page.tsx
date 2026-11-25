@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { esciGenitori, salvaProfilo } from "@/app/genitori/azioni";
+import Link from "next/link";
+import { esciGenitori, registraConsenso, salvaProfilo } from "@/app/genitori/azioni";
 import { Notifiche } from "@/components/genitori/Notifiche";
 import { classiBottone } from "@/components/ui/Bottone";
 import { campo } from "@/components/ui/campi";
 import { Pill } from "@/components/ui/Pill";
 import { getCorsi } from "@/lib/dati";
+import { dataOra } from "@/lib/formato";
 import { caricaFamiglia } from "@/lib/genitori";
 import { VAPID_PUBBLICA } from "@/lib/push";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -17,6 +19,10 @@ export default async function ProfiloGenitori({ searchParams }: { searchParams: 
   const { data: { user } } = await supabase.auth.getUser();
   const [{ famiglie, figli }, corsi] = await Promise.all([caricaFamiglia(supabase, user!.email!), getCorsi(supabase)]);
   const famiglia = famiglie[0];
+  // Per ogni figlio vale l'ultima scelta registrata.
+  const { data: storico } = await supabase.from("consensi").select("allievo_id, concesso, registrato_il").in("allievo_id", figli.map((f) => f.id)).order("registrato_il", { ascending: false });
+  const consenso = new Map<string, { concesso: boolean; registrato_il: string }>();
+  for (const riga of storico ?? []) if (!consenso.has(riga.allievo_id)) consenso.set(riga.allievo_id, riga);
   const nomeCorso = new Map(corsi.map((c) => [c.id, c.nome]));
 
   return (
@@ -56,9 +62,26 @@ export default async function ProfiloGenitori({ searchParams }: { searchParams: 
         <div className="mt-3"><Notifiche chiavePubblica={VAPID_PUBBLICA} /></div>
       </section>
 
-      <section className="mt-4 rounded-card bg-rosa p-5 sm:p-8">
-        <h2 className="titolo text-[36px]">Consensi</h2>
-        <p className="mt-2 font-medium">In arrivo: qui potrai dare o togliere il consenso per foto e video.</p>
+      <section id="consensi" className="mt-4 scroll-mt-4 rounded-card bg-rosa p-5 sm:p-8">
+        <h2 className="titolo text-[36px]">Foto e video</h2>
+        <p className="mt-2 font-medium">Durante lezioni, saggi ed eventi la scuola scatta foto e video. Possono essere pubblicati sul sito e sui canali social della scuola solo con il tuo consenso. Puoi cambiarlo quando vuoi. Dettagli nell&apos;<Link href="/privacy" className="font-bold underline">informativa privacy</Link>.</p>
+        <ul className="mt-4 space-y-4">
+          {figli.map((f) => {
+            const c = consenso.get(f.id);
+            const scelta = (si: boolean) => `min-h-[56px] flex-1 rounded-full border-[3px] border-nero px-4 font-titolo text-[20px] font-extrabold uppercase ${c?.concesso === si ? "bg-nero text-white" : "bg-white text-nero"}`;
+            return (
+              <li key={f.id} className="rounded-[22px] bg-white p-4">
+                <p className="text-[20px] font-bold">{f.nome} {f.cognome}</p>
+                <p className="text-[15px] font-medium text-nero/70">{c ? `${c.concesso ? "Consenso dato" : "Consenso negato"} il ${dataOra(c.registrato_il)}` : "Non hai ancora scelto: senza una scelta non pubblichiamo nulla."}</p>
+                <form action={registraConsenso} className="mt-3 flex gap-2">
+                  <input type="hidden" name="allievo_id" value={f.id} />
+                  <button type="submit" name="concesso" value="si" aria-pressed={c?.concesso === true} className={scelta(true)}>Acconsento</button>
+                  <button type="submit" name="concesso" value="no" aria-pressed={c?.concesso === false} className={scelta(false)}>Non acconsento</button>
+                </form>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <form action={esciGenitori} className="mt-8"><button className="min-h-[52px] rounded-full bg-nero px-7 font-titolo text-[22px] font-extrabold uppercase text-white">Esci</button></form>

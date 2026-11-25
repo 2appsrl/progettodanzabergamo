@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: { default: "Area maestre", template: 
 
 const voci = [
   ["/maestre", "Riepilogo"], ["/maestre/richieste", "Conferme"], ["/maestre/avvisi", "Avvisi"], ["/maestre/calendario", "Calendario"],
-  ["/maestre/allieve", "Allieve"],
+  ["/maestre/allieve", "Allieve"], ["/maestre/certificati", "Certificati"], ["/maestre/documenti", "Documenti"],
   ["/maestre/prove", "Richieste di prova"],
   ["/maestre/corsi", "Corsi e orari"], ["/maestre/merch", "Merchandising"], ["/maestre/impostazioni", "Impostazioni"],
 ];

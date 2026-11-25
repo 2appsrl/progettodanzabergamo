@@ -27,7 +27,7 @@ export default async function Riepilogo() {
           </Link>
         ))}
       </div>
-      <p className="mt-8 rounded-card bg-rosa p-5 font-medium">In arrivo nella prossima fase: certificati medici, documenti e consensi privacy.</p>
+      <p className="mt-8 rounded-card bg-rosa p-5 font-medium">Certificati medici, documenti e consensi per foto e video si gestiscono dal menu in alto.</p>
     </>
   );
 }

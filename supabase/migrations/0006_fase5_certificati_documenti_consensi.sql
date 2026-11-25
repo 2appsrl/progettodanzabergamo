@@ -1,0 +1,9 @@
+-- FASE 5 — Certificati medici, documenti, consensi, promemoria.
+-- Il testo completo è registrato nel progetto Supabase (Database > Migrations:
+-- fase5_certificati_documenti_consensi e fase5_promemoria_certificati). In sintesi:
+--   * certificati (scadenza, file, promemoria_il): maestre tutto; il genitore legge e carica quelli dei figli
+--   * documenti (titolo, categoria, corso, file o link): maestre tutto; il genitore legge quelli dei suoi corsi
+--   * consensi (foto_video, concesso, versione_informativa, registrato_il): solo aggiunte, mai modifiche,
+--     così resta lo storico; il genitore registra e legge i propri, le maestre leggono tutto
+--   * spazi file privati "certificati" (cartella per allieva) e "documenti"
+--   * privato.segreti + promemoria_certificati(segreto): elenco giornaliero dei certificati in scadenza
