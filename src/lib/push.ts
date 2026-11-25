@@ -4,7 +4,7 @@ import webpush from "web-push";
 // Chiave PUBBLICA delle notifiche (può stare nel sito). Quella privata sta solo
 // nelle impostazioni di Netlify (variabile VAPID_PRIVATE_KEY), mai nel codice.
 export const VAPID_PUBBLICA =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "BO86-6hmdp2kQZTvR2l1aQmRLjwdUKPigjF5t1ZySSMbO-p3LjFIEcjDRNwUibzbYwHxNIIVe0nQQo2Wyd4m-00";
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "BFeBH88xlhGQiWesCRRKAj4Ym1fei7gRyuRzMgRU8zl9SJEFa5OOKrqM8uwJt-W6IpR6WeyZYcX-7NC_FUVIZFQ";
 
 // Manda una notifica ai telefoni delle famiglie indicate (null = tutte).
 // Restituisce quante ne sono partite; se la chiave privata manca non fa nulla.
